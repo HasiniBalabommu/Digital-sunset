@@ -1,0 +1,66 @@
+{
+  "Comment": "Digital Sunset escalation workflow",
+  "StartAt": "SendGentleReminder",
+  "States": {
+    "SendGentleReminder": {
+      "Type": "Task",
+      "Resource": "${EscalationFunctionArn}",
+      "Parameters": {
+        "itemName.$": "$.itemName",
+        "userId.$": "$.userId",
+        "trustedContactEmail.$": "$.trustedContactEmail",
+        "stage": "gentle"
+      },
+      "ResultPath": "$.result",
+      "Next": "WaitThreeDays"
+    },
+    "WaitThreeDays": {
+      "Type": "Wait",
+      "Seconds": 60,
+      "Next": "CheckStatusAfterGentle"
+    },
+    "CheckStatusAfterGentle": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.result.escalationStage",
+          "StringEquals": "warned",
+          "Next": "SendUrgentReminder"
+        }
+      ],
+      "Default": "EndWorkflow"
+    },
+    "SendUrgentReminder": {
+      "Type": "Task",
+      "Resource": "${EscalationFunctionArn}",
+      "Parameters": {
+        "itemName.$": "$.itemName",
+        "userId.$": "$.userId",
+        "trustedContactEmail.$": "$.trustedContactEmail",
+        "stage": "urgent"
+      },
+      "ResultPath": "$.result",
+      "Next": "WaitFiveDays"
+    },
+    "WaitFiveDays": {
+      "Type": "Wait",
+      "Seconds": 60,
+      "Next": "SendFinalEscalation"
+    },
+    "SendFinalEscalation": {
+      "Type": "Task",
+      "Resource": "${EscalationFunctionArn}",
+      "Parameters": {
+        "itemName.$": "$.itemName",
+        "userId.$": "$.userId",
+        "trustedContactEmail.$": "$.trustedContactEmail",
+        "stage": "escalate"
+      },
+      "ResultPath": "$.result",
+      "Next": "EndWorkflow"
+    },
+    "EndWorkflow": {
+      "Type": "Succeed"
+    }
+  }
+}

@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Digital Sunset</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #11162A;
+    --bg-raised: #171D38;
+    --line: #2A3155;
+    --text: #EDEEF5;
+    --text-dim: #9AA0C0;
+    --gold: #E8AA4C;
+    --amber: #D9823F;
+    --ember: #C24A34;
+    --focus: #F2C879;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+  }
+
+  ::selection { background: var(--gold); color: #1A1206; }
+
+  a, button { font-family: inherit; }
+
+  button:focus-visible, input:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  /* ---------- Horizon hero (renders once) ---------- */
+  .horizon {
+    position: relative;
+    height: 220px;
+    overflow: hidden;
+    background: linear-gradient(180deg, #171D38 0%, #1B2140 55%, #11162A 100%);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .horizon svg { position: absolute; bottom: -2px; left: 0; width: 100%; height: auto; }
+
+  .horizon-sun {
+    position: absolute;
+    left: 50%;
+    bottom: 38px;
+    width: 92px;
+    height: 92px;
+    border-radius: 50%;
+    transform: translateX(-50%);
+    background: radial-gradient(circle at 35% 30%, var(--gold), var(--ember) 85%);
+    box-shadow: 0 0 60px 6px rgba(232, 170, 76, 0.35);
+    animation: rise 1.4s cubic-bezier(.2,.8,.2,1) both;
+  }
+
+  @keyframes rise {
+    from { transform: translateX(-50%) translateY(30px); opacity: 0; }
+    to { transform: translateX(-50%) translateY(0); opacity: 1; }
+  }
+
+  .brand {
+    position: relative;
+    z-index: 2;
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 28px 24px 0;
+  }
+
+  .brand h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 27px;
+    letter-spacing: -0.01em;
+    margin: 0;
+  }
+
+  .brand p {
+    margin: 6px 0 0;
+    color: var(--text-dim);
+    font-size: 14.5px;
+    max-width: 40ch;
+    line-height: 1.5;
+  }
+
+  /* ---------- Shell / layout ---------- */
+  .shell { max-width: 640px; margin: 0 auto; padding: 36px 24px 80px; }
+
+  /* ---------- Auth screen ---------- */
+  .auth-screen {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 60px 24px;
+    text-align: center;
+  }
+
+  .auth-screen h2 {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 22px;
+    margin: 0 0 10px;
+  }
+
+  .auth-screen p {
+    color: var(--text-dim);
+    font-size: 15px;
+    max-width: 42ch;
+    margin: 0 auto 28px;
+    line-height: 1.6;
+  }
+
+  /* ---------- Buttons ---------- */
+  .btn {
+    border: none;
+    border-radius: 7px;
+    padding: 11px 20px;
+    font-size: 14.5px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: transform 0.12s ease, background 0.15s ease;
+  }
+  .btn:active { transform: scale(0.98); }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--gold), var(--amber));
+    color: #1A1206;
+  }
+  .btn-primary:hover { filter: brightness(1.06); }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--text-dim);
+    border: 1px solid var(--line);
+  }
+  .btn-ghost:hover { color: var(--text); border-color: #3A4270; }
+
+  .btn-quiet {
+    background: var(--bg-raised);
+    color: var(--text);
+    border: 1px solid var(--line);
+    padding: 8px 14px;
+    font-size: 13.5px;
+  }
+  .btn-quiet:hover { border-color: #3A4270; }
+
+  .btn-remove {
+    background: transparent;
+    color: #B3597E;
+    border: 1px solid transparent;
+    padding: 8px 10px;
+    font-size: 13.5px;
+  }
+  .btn-remove:hover { background: rgba(179, 89, 126, 0.12); }
+
+  /* ---------- Top bar (logged in) ---------- */
+  .topbar {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 32px;
+  }
+  .topbar .who { font-size: 13px; color: var(--text-dim); }
+
+  /* ---------- Add form ---------- */
+  .add-panel {
+    background: var(--bg-raised);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 40px;
+  }
+
+  .add-panel h3 {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 16px;
+    margin: 0 0 14px;
+  }
+
+  .add-row { display: flex; gap: 10px; flex-wrap: wrap; }
+
+  .field { flex: 1 1 220px; display: flex; flex-direction: column; gap: 5px; }
+  .field.short { flex: 0 1 130px; }
+
+  .field label { font-size: 12.5px; color: var(--text-dim); }
+
+  input {
+    background: #0E1326;
+    border: 1px solid var(--line);
+    color: var(--text);
+    border-radius: 7px;
+    padding: 10px 12px;
+    font-size: 14.5px;
+  }
+  input::placeholder { color: #5C628A; }
+  input:focus { border-color: var(--gold); }
+
+  .add-row .btn-primary { align-self: flex-end; height: 40px; }
+
+  /* ---------- Section label ---------- */
+  .section-label {
+    font-family: 'Fraunces', serif;
+    font-size: 16px;
+    font-weight: 500;
+    margin: 0 0 4px;
+  }
+  .section-sub { color: var(--text-dim); font-size: 13px; margin: 0 0 18px; }
+
+  /* ---------- Item list ---------- */
+  .items { border-top: 1px solid var(--line); }
+
+  .item {
+    display: flex;
+    align-items: stretch;
+    gap: 16px;
+    padding: 18px 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .item-bar {
+    flex: 0 0 5px;
+    border-radius: 3px;
+    background: linear-gradient(180deg, var(--barcolor, var(--gold)), var(--barcolor2, var(--amber)));
+  }
+
+  .item-main { flex: 1; min-width: 0; }
+
+  .item-name {
+    font-family: 'Fraunces', serif;
+    font-size: 17px;
+    font-weight: 500;
+    margin: 0 0 4px;
+  }
+
+  .item-meta {
+    font-size: 13px;
+    color: var(--text-dim);
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .item-status {
+    font-size: 12.5px;
+    padding: 2px 9px;
+    border-radius: 20px;
+    border: 1px solid currentColor;
+  }
+
+  .item-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 0 0 auto;
+  }
+
+  /* ---------- Empty state ---------- */
+  .empty {
+    padding: 48px 0;
+    text-align: center;
+    color: var(--text-dim);
+  }
+  .empty p { margin: 0; font-size: 14.5px; line-height: 1.6; max-width: 34ch; margin: 0 auto; }
+
+  /* ---------- Toast ---------- */
+  .toast {
+    position: fixed;
+    bottom: 22px;
+    left: 50%;
+    transform: translateX(-50%) translateY(12px);
+    background: var(--bg-raised);
+    border: 1px solid var(--line);
+    color: var(--text);
+    padding: 11px 18px;
+    border-radius: 8px;
+    font-size: 13.5px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .horizon-sun { animation: none; }
+  }
+
+  @media (max-width: 480px) {
+    .item { flex-wrap: wrap; }
+    .item-actions { flex: 1 1 100%; justify-content: flex-start; margin-top: 8px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="horizon">
+  <div class="horizon-sun"></div>
+  <svg viewBox="0 0 640 60" preserveAspectRatio="none"><path d="M0,30 C120,10 240,50 360,28 C460,10 560,45 640,20 L640,60 L0,60 Z" fill="#11162A"/></svg>
+  <div class="brand">
+    <h1>Digital Sunset</h1>
+    <p>Keep an eye on the things you'd rather not forget — before they quietly fade out.</p>
+  </div>
+</div>
+
+<div id="loginSection" class="auth-screen">
+  <h2>Sign in to see what's watching</h2>
+  <p>Your tracked subscriptions and accounts live behind your own login — nobody else sees them.</p>
+  <button class="btn btn-primary" onclick="login()">Log in</button>
+</div>
+
+<div id="appSection" class="shell" style="display:none;">
+
+  <div class="topbar">
+    <span class="who" id="whoLabel">Signed in</span>
+    <button class="btn btn-ghost" onclick="logout()">Log out</button>
+  </div>
+
+  <div class="add-panel">
+    <h3>Track something new</h3>
+    <div class="add-row">
+      <div class="field">
+        <label for="itemName">What are you tracking?</label>
+        <input id="itemName" placeholder="Netflix, old college email, gym membership…">
+      </div>
+      <div class="field short">
+        <label for="checkInDays">Check in every (days)</label>
+        <input id="checkInDays" type="number" value="30" min="1">
+      </div>
+      <button class="btn btn-primary" onclick="addItem()">Track it</button>
+    </div>
+  </div>
+
+  <p class="section-label">What you're watching</p>
+  <p class="section-sub" id="sectionSub">Loading…</p>
+
+  <div class="items" id="itemsList"></div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // ---- CONFIG: replace with your actual values from the deploy Outputs ----
+  const API_URL = "https://2vem8wkk23.execute-api.ap-south-1.amazonaws.com/Prod";
+  const COGNITO_DOMAIN = "digital-sunset-hasini.auth.ap-south-1.amazoncognito.com";
+  const CLIENT_ID = "1p50tsr62iemn4qammffom0aos";
+  const REDIRECT_URI = "http://localhost:3000";
+  // --------------------------------------------------------------------
+
+  function login() {
+    const url = `https://${COGNITO_DOMAIN}/login?client_id=${CLIENT_ID}&response_type=token&scope=openid+email&redirect_uri=${REDIRECT_URI}`;
+    window.location.href = url;
+  }
+
+  function logout() {
+    sessionStorage.removeItem("id_token");
+    const url = `https://${COGNITO_DOMAIN}/logout?client_id=${CLIENT_ID}&logout_uri=${REDIRECT_URI}`;
+    window.location.href = url;
+  }
+
+  function getTokenFromUrl() {
+    const hash = window.location.hash;
+    if (hash.includes("id_token")) {
+      const params = new URLSearchParams(hash.substring(1));
+      const token = params.get("id_token");
+      if (token) {
+        sessionStorage.setItem("id_token", token);
+        window.location.hash = "";
+      }
+    }
+  }
+
+  function getToken() { return sessionStorage.getItem("id_token"); }
+
+  function decodeEmail(token) {
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      return payload.email || "your account";
+    } catch { return "your account"; }
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    setTimeout(() => t.classList.remove("show"), 2200);
+  }
+
+  async function apiCall(path, method = "GET", body = null) {
+    const res = await fetch(`${API_URL}${path}`, {
+      method,
+      headers: { "Content-Type": "application/json", "Authorization": getToken() },
+      body: body ? JSON.stringify(body) : null
+    });
+    if (!res.ok) throw new Error("Request failed");
+    return res.json();
+  }
+
+  // Interpolates gold -> amber -> ember based on progress (0 to 1+)
+  function statusColor(progress) {
+    const clamped = Math.min(progress, 1.4);
+    if (clamped <= 0.6) {
+      return { top: "#E8AA4C", bottom: "#D9823F", label: "checked in recently", tone: "#E8AA4C" };
+    } else if (clamped <= 1) {
+      return { top: "#D9823F", bottom: "#C24A34", label: "due for a check-in soon", tone: "#D9823F" };
+    } else {
+      return { top: "#C24A34", bottom: "#7A2E22", label: "overdue — being escalated", tone: "#C24A34" };
+    }
+  }
+
+  function daysSince(dateStr) {
+    return (Date.now() - new Date(dateStr).getTime()) / 86400000;
+  }
+
+  async function loadItems() {
+    const items = await apiCall("/items");
+    const list = document.getElementById("itemsList");
+    const sub = document.getElementById("sectionSub");
+    list.innerHTML = "";
+
+    if (!items.length) {
+      sub.textContent = "Nothing here yet.";
+      list.innerHTML = `<div class="empty"><p>Nothing being watched yet. Add a subscription or account above, and it'll live here until you check in on it.</p></div>`;
+      return;
+    }
+
+    sub.textContent = `${items.length} thing${items.length > 1 ? "s" : ""} being watched.`;
+
+    items
+      .sort((a, b) => (daysSince(a.lastCheckIn) / a.checkInFrequencyDays) < (daysSince(b.lastCheckIn) / b.checkInFrequencyDays) ? 1 : -1)
+      .forEach(item => {
+        const elapsed = daysSince(item.lastCheckIn);
+        const progress = elapsed / item.checkInFrequencyDays;
+        const status = statusColor(progress);
+        const daysLeft = Math.round(item.checkInFrequencyDays - elapsed);
+
+        const row = document.createElement("div");
+        row.className = "item";
+        row.innerHTML = `
+          <div class="item-bar" style="--barcolor:${status.top}; --barcolor2:${status.bottom}"></div>
+          <div class="item-main">
+            <p class="item-name">${item.itemName}</p>
+            <div class="item-meta">
+              <span>Last checked in ${new Date(item.lastCheckIn).toLocaleDateString()}</span>
+              <span class="item-status" style="color:${status.tone}">${daysLeft >= 0 ? daysLeft + " days left" : status.label}</span>
+            </div>
+          </div>
+          <div class="item-actions">
+            <button class="btn btn-quiet" onclick="checkIn('${item.itemId}')">Check in</button>
+            <button class="btn-remove" onclick="deleteItem('${item.itemId}')">Remove</button>
+          </div>
+        `;
+        list.appendChild(row);
+      });
+  }
+
+  async function addItem() {
+    const itemName = document.getElementById("itemName").value.trim();
+    const checkInFrequencyDays = parseInt(document.getElementById("checkInDays").value) || 30;
+    if (!itemName) { showToast("Give it a name first."); return; }
+    await apiCall("/items", "POST", { itemName, checkInFrequencyDays });
+    document.getElementById("itemName").value = "";
+    showToast(`Now watching "${itemName}".`);
+    loadItems();
+  }
+
+  async function checkIn(itemId) {
+    await apiCall(`/items/${itemId}/checkin`, "POST");
+    showToast("Checked in.");
+    loadItems();
+  }
+
+  async function deleteItem(itemId) {
+    await apiCall(`/items/${itemId}`, "DELETE");
+    showToast("Removed.");
+    loadItems();
+  }
+
+  // On page load
+  getTokenFromUrl();
+  const token = getToken();
+  if (token) {
+    document.getElementById("loginSection").style.display = "none";
+    document.getElementById("appSection").style.display = "block";
+    document.getElementById("whoLabel").textContent = decodeEmail(token);
+    loadItems();
+  }
+</script>
+
+</body>
+</html>

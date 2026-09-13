@@ -1,0 +1,184 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Digital Sunset - Inactive account/subscription monitor
+
+Globals:
+  Function:
+    Runtime: nodejs20.x
+    Timeout: 10
+    MemorySize: 128
+    Environment:
+      Variables:
+        TABLE_NAME: !Ref TrackedItemsTable
+  Api:
+    Cors:
+      AllowMethods: "'GET,POST,DELETE,OPTIONS'"
+      AllowHeaders: "'Content-Type,Authorization'"
+      AllowOrigin: "'*'"
+    Auth:
+      DefaultAuthorizer: CognitoAuthorizer
+      AddDefaultAuthorizerToCorsPreflight: false
+      Authorizers:
+        CognitoAuthorizer:
+          UserPoolArn: !GetAtt UserPool.Arn
+
+Resources:
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: DigitalSunsetUsers
+      AutoVerifiedAttributes: [email]
+      UsernameAttributes: [email]
+
+  UserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      UserPoolId: !Ref UserPool
+      ClientName: DigitalSunsetWebClient
+      GenerateSecret: false
+      AllowedOAuthFlows: [implicit]
+      AllowedOAuthScopes: [openid, email]
+      AllowedOAuthFlowsUserPoolClient: true
+      SupportedIdentityProviders: [COGNITO]
+      CallbackURLs:
+        - http://localhost:3000
+      LogoutURLs:
+        - http://localhost:3000
+
+  UserPoolDomain:
+    Type: AWS::Cognito::UserPoolDomain
+    Properties:
+      Domain: digital-sunset-hasini
+      UserPoolId: !Ref UserPool
+
+  TrackedItemsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: TrackedItems
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: userId
+          AttributeType: S
+        - AttributeName: itemId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: userId
+          KeyType: HASH
+        - AttributeName: itemId
+          KeyType: RANGE
+
+  CheckInFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/checkin/
+      Handler: app.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref TrackedItemsTable
+      Events:
+        CheckIn:
+          Type: Api
+          Properties:
+            Path: /items/{id}/checkin
+            Method: post
+
+  AddItemFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/additem/
+      Handler: app.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref TrackedItemsTable
+      Events:
+        AddItem:
+          Type: Api
+          Properties:
+            Path: /items
+            Method: post
+
+  ListItemsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/listitems/
+      Handler: app.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref TrackedItemsTable
+      Events:
+        ListItems:
+          Type: Api
+          Properties:
+            Path: /items
+            Method: get
+
+  DeleteItemFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/deleteitem/
+      Handler: app.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref TrackedItemsTable
+      Events:
+        DeleteItem:
+          Type: Api
+          Properties:
+            Path: /items/{id}
+            Method: delete
+
+  EscalationFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/escalation/
+      Handler: app.handler
+      Environment:
+        Variables:
+          SENDER_EMAIL: hasini1607@gmail.com
+      Policies:
+        - SESCrudPolicy:
+            IdentityName: hasini1607@gmail.com
+
+  EscalationStateMachine:
+    Type: AWS::Serverless::StateMachine
+    Properties:
+      DefinitionUri: statemachine/escalation.asl.json
+      DefinitionSubstitutions:
+        EscalationFunctionArn: !GetAtt EscalationFunction.Arn
+      Policies:
+        - LambdaInvokePolicy:
+            FunctionName: !Ref EscalationFunction
+
+  MonitorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/monitor/
+      Handler: app.handler
+      Environment:
+        Variables:
+          STATE_MACHINE_ARN: !Ref EscalationStateMachine
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref TrackedItemsTable
+        - StepFunctionsExecutionPolicy:
+            StateMachineName: !GetAtt EscalationStateMachine.Name
+      Events:
+        DailyCheck:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 day)
+            Enabled: false
+
+Outputs:
+  TableName:
+    Value: !Ref TrackedItemsTable
+  ApiUrl:
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+  CognitoLoginUrl:
+    Value: !Sub "https://digital-sunset-hasini.auth.${AWS::Region}.amazoncognito.com/login?client_id=${UserPoolClient}&response_type=token&scope=openid+email&redirect_uri=http://localhost:3000"
+  CognitoDomain:
+    Value: !Sub "digital-sunset-hasini.auth.${AWS::Region}.amazoncognito.com"
+  UserPoolId:
+    Value: !Ref UserPool
+  UserPoolClientId:
+    Value: !Ref UserPoolClient
